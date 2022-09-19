@@ -2,46 +2,75 @@ package http
 
 import (
 	"github.com/labstack/echo/v4"
+	"net/http"
 	_ "net/http"
+	"strconv"
 	_ "strconv"
 	"test/app"
 )
 
-// ResponseError represent the reseponse error struct
 type ResponseError struct {
 	Message string `json:"message"`
 }
 
-// ArticleHandler  represent the httphandler for article
-//type ArticleHandler struct {
-//	AUsecase domain.ArticleUsecase
-//}
+type PersonHandler struct {
+	PUsecase app.PersonUsecase
+}
 
 func NewPersonHandler(e *echo.Echo, us app.PersonUsecase) {
-	handler := &PersonUsecase{
+	handler := &PersonHandler{
 		PUsecase: us,
 	}
-	e.GET("/articles", handler.FetchArticle)
-	e.POST("/articles", handler.Store)
-	e.GET("/articles/:id", handler.GetByID)
-	e.DELETE("/articles/:id", handler.Delete)
+	e.POST("/persons", handler.Store)
+	e.GET("/persons/:id", handler.GetByID)
+	e.DELETE("/persons/:id", handler.Delete)
 }
 
-func createPerson() {
+func (a *PersonHandler) Store(c echo.Context) error {
 
-}
-
-func GetByID() {
-
-}
-
-func Update() {
-
-}
-
-func Delete(c echo.Context) error {
-	//id, _ := strconv.Atoi(c.Param("id"))
-	//delete(users, id)
-	//return c.NoContent(http.StatusNoContent)
 	return nil
+}
+
+func (a *PersonHandler) GetByID(c echo.Context) error {
+
+	return nil
+}
+
+//func Update() {
+//
+//}
+
+func (a *PersonHandler) Delete(c echo.Context) error {
+	idP, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		//return c.JSON(http.StatusNotFound, app.ErrNotFound.Error())
+	}
+
+	id := int64(idP)
+	ctx := c.Request().Context()
+
+	err = a.PUsecase.Delete(ctx, id)
+	if err != nil {
+		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getStatusCode(err error) int {
+	//if err == nil {
+	return http.StatusOK
+	//}
+
+	//logrus.Error(err)
+	//switch err {
+	//case app.ErrInternalServerError:
+	//	return http.StatusInternalServerError
+	//case app.ErrNotFound:
+	//	return http.StatusNotFound
+	//case app.ErrConflict:
+	//	return http.StatusConflict
+	//default:
+	//	return http.StatusInternalServerError
+	//}
 }

@@ -12,16 +12,14 @@ type Person struct {
 
 // PersonRepository represent the person's repository contract
 type PersonRepository interface {
-	// GetByID Fetch(ctx context.Context, cursor string, num int64) (res []Person, nextCursor string, err error)
-	//Create
+	//Store
 	GetByID(ctx context.Context, id int64) (Person, error)
 	Update(ctx context.Context, person *Person) error
 	Delete(ctx context.Context, id int64) error
 }
 
 type PersonUsecase interface {
-	// GetByID Fetch(ctx context.Context, cursor string, num int64) (res []Person, nextCursor string, err error)
-	//Create
+	//Store
 	GetByID(ctx context.Context, id int64) (Person, error)
 	Update(ctx context.Context, person *Person) error
 	Delete(ctx context.Context, id int64) error
