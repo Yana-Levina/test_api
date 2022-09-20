@@ -4,10 +4,10 @@ import "context"
 
 type Person struct {
 	ID        int64  `json:"id"`
-	email     string `json:"email"`
-	phone     string `json:"phone"`
-	firstName string `json:"first_name"`
-	lastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 // PersonRepository represent the person's repository contract

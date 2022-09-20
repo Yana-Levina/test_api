@@ -10,6 +10,19 @@ type PersonUsecase struct {
 	mock.Mock
 }
 
+func (_m *PersonUsecase) Fetch(ctx context.Context, cursor string, num int64) ([]app.Person, string, error) {
+	//ret := _m.Called(ctx, ar)
+	//
+	//var r0 error
+	//if rf, ok := ret.Get(0).(func(context.Context, *domain.Article) error); ok {
+	//	r0 = rf(ctx, ar)
+	//} else {
+	//	r0 = ret.Error(0)
+	//}
+
+	return nil, "nil", nil
+}
+
 func (_m *PersonUsecase) Update(ctx context.Context, ar *app.Person) error {
 	//ret := _m.Called(ctx, ar)
 	//

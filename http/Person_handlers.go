@@ -21,9 +21,25 @@ func NewPersonHandler(e *echo.Echo, us app.PersonUsecase) {
 	handler := &PersonHandler{
 		PUsecase: us,
 	}
+	e.GET("/persons", handler.Fetch)
 	e.POST("/persons", handler.Store)
 	e.GET("/persons/:id", handler.GetByID)
 	e.DELETE("/persons/:id", handler.Delete)
+}
+
+func (a *PersonHandler) Fetch(c echo.Context) error {
+	numS := c.QueryParam("num")
+	num, _ := strconv.Atoi(numS)
+	cursor := c.QueryParam("cursor")
+	ctx := c.Request().Context()
+
+	listAr, nextCursor, err := a.PUsecase.Fetch(ctx, cursor, int64(num))
+	if err != nil {
+		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
+	}
+
+	c.Response().Header().Set(`X-Cursor`, nextCursor)
+	return c.JSON(http.StatusOK, listAr)
 }
 
 func (a *PersonHandler) Store(c echo.Context) error {
@@ -35,10 +51,6 @@ func (a *PersonHandler) GetByID(c echo.Context) error {
 
 	return nil
 }
-
-//func Update() {
-//
-//}
 
 func (a *PersonHandler) Delete(c echo.Context) error {
 	idP, err := strconv.Atoi(c.Param("id"))

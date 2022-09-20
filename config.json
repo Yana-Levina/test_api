@@ -1,16 +1,16 @@
 {
   "debug": true,
   "server": {
-    "address": ":9090"
+    "address": ":1234"
   },
   "context":{
     "timeout":2
   },
   "database": {
-    "host": "mysql",
-    "port": "3306",
-    "user": "admin",
+    "host": "localhost",
+    "port": "5432",
+    "user": "postgres",
     "pass": "admin",
-    "name": "person"
+    "name": "bookshopDB"
   }
 }
