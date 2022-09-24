@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	_ "fmt"
 	"github.com/sirupsen/logrus"
 	"test/app"
@@ -12,16 +13,15 @@ import (
 	_ "github.com/labstack/echo/v4"
 )
 
-type mysqlPersonRepository struct {
+type PersonRepository struct {
 	Conn *sql.DB
 }
 
-// NewMysqlArticleRepository will create an object that represent the article.Repository interface
-func NewMysqlPersonRepository(Conn *sql.DB) Person_repository {
-	return &mysqlPersonRepository{Conn}
+func NewPersonRepository(Conn *sql.DB) app.PersonRepository {
+	return &PersonRepository{Conn}
 }
 
-func (m *mysqlPersonRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []app.Person, err error) {
+func (m *PersonRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []app.Person, err error) {
 	rows, err := m.Conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		logrus.Error(err)
@@ -57,32 +57,43 @@ func (m *mysqlPersonRepository) fetch(ctx context.Context, query string, args ..
 	return result, nil
 }
 
-func (m *mysqlPersonRepository) GetByID(ctx context.Context, id int64) (err error) {
+func (m *PersonRepository) Create(ctx context.Context, person *app.Person) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *PersonRepository) GetAll(ctx context.Context, cursor string, num int64) ([]app.Person, string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Person, err error) {
 
 	query := `SELECT id, email, phone, first_name, last_name FROM person WHERE id = ?`
-	//list, err := m.fetch(ctx, query, id)
-	//if err != nil {
-	//	return app.Person{}, err
-	//}
-	//
-	//if len(list) > 0 {
-	//	res = list[0]
-	//} else {
-	//	return res, app.Person
-	//}
-	//
-	//return
+	list, err := m.fetch(ctx, query, id)
+	if err != nil {
+		return app.Person{}, err
+	}
+
+	if len(list) > 0 {
+		res = list[0]
+	} else {
+		return res, errors.New("your requested Item is not found")
+	}
+
+	return
 }
 
-func (_m *mysqlPersonRepository) Update(ctx context.Context, person *app.Person) (err error) {
+func (_m *PersonRepository) Update(ctx context.Context, person *app.Person) (err error) {
 
-	query := `UPDATE person SET email = ? , phone = ? , first_name = ?, last_name = ? WHERE id = ?`
+	//query := `UPDATE person SET email = ? , phone = ? , first_name = ?, last_name = ? WHERE id = ?`
+	return nil
 
 }
 
-func (m *mysqlPersonRepository) Delete(ctx context.Context, id int64) (err error) {
+func (m *PersonRepository) Delete(ctx context.Context, id int64) (err error) {
 
-	query := `DELETE FROM person WHERE id = ?`
+	//query := `DELETE FROM person WHERE id = ?`
 	//id, _ := strconv.Atoi(c.Param("id"))
 	//delete(users, id)
 	//return c.NoContent(http.StatusNoContent)

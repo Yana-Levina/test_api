@@ -10,16 +10,17 @@ type Person struct {
 	LastName  string `json:"last_name"`
 }
 
-// PersonRepository represent the person's repository contract
 type PersonRepository interface {
-	//Store
+	Create(context.Context, *Person) error
+	GetAll(ctx context.Context, cursor string, num int64) ([]Person, string, error)
 	GetByID(ctx context.Context, id int64) (Person, error)
 	Update(ctx context.Context, person *Person) error
 	Delete(ctx context.Context, id int64) error
 }
 
 type PersonUsecase interface {
-	//Store
+	Create(context.Context, *Person) error
+	GetAll(ctx context.Context, cursor string, num int64) ([]Person, string, error)
 	GetByID(ctx context.Context, id int64) (Person, error)
 	Update(ctx context.Context, person *Person) error
 	Delete(ctx context.Context, id int64) error
