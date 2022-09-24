@@ -12,7 +12,7 @@ type Person struct {
 
 type PersonRepository interface {
 	Create(context.Context, *Person) error
-	GetAll(ctx context.Context, cursor string, num int64) ([]Person, string, error)
+	GetAll(ctx context.Context) ([]Person, error)
 	GetByID(ctx context.Context, id int64) (Person, error)
 	Update(ctx context.Context, person *Person) error
 	Delete(ctx context.Context, id int64) error
@@ -20,7 +20,7 @@ type PersonRepository interface {
 
 type PersonUsecase interface {
 	Create(context.Context, *Person) error
-	GetAll(ctx context.Context, cursor string, num int64) ([]Person, string, error)
+	GetAll(ctx context.Context) ([]Person, error)
 	GetByID(ctx context.Context, id int64) (Person, error)
 	Update(ctx context.Context, person *Person) error
 	Delete(ctx context.Context, id int64) error

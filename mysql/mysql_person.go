@@ -62,14 +62,20 @@ func (m *PersonRepository) Create(ctx context.Context, person *app.Person) error
 	panic("implement me")
 }
 
-func (m *PersonRepository) GetAll(ctx context.Context, cursor string, num int64) ([]app.Person, string, error) {
-	//TODO implement me
-	panic("implement me")
+func (m *PersonRepository) GetAll(ctx context.Context) (res []app.Person, err error) {
+	query := `SELECT id, email, phone, first_name, last_name FROM public.person`
+
+	res, err = m.fetch(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return
 }
 
 func (m *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Person, err error) {
 
-	query := `SELECT id, email, phone, first_name, last_name FROM person WHERE id = ?`
+	query := `SELECT id, email, phone, first_name, last_name FROM public.person WHERE id = ?`
 	list, err := m.fetch(ctx, query, id)
 	if err != nil {
 		return app.Person{}, err

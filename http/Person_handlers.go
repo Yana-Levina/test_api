@@ -5,6 +5,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
+	_ "strconv"
 	"test/app"
 )
 
@@ -32,36 +34,31 @@ func (a *PersonHandler) Create(c echo.Context) error {
 }
 
 func (a *PersonHandler) GetAll(c echo.Context) error {
-	//numS := c.QueryParam("num")
-	//num, _ := strconv.Atoi(numS)
-	//cursor := c.QueryParam("cursor")
-	//ctx := c.Request().Context()
-	//
-	//listAr, nextCursor, err := a.PLogic.Fetch(ctx, cursor, int64(num))
-	//if err != nil {
-	//	//return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
-	//}
-	//
-	//c.Response().Header().Set(`X-Cursor`, nextCursor)
-	//return c.JSON(http.StatusOK, listAr)
-	return c.String(http.StatusOK, "you tru get all")
+	ctx := c.Request().Context()
+
+	listAr, err := a.PUseCase.GetAll(ctx)
+	if err != nil {
+		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, listAr)
 }
 
 func (a *PersonHandler) GetByID(c echo.Context) error {
-	//idP, err := strconv.Atoi(c.Param("id"))
-	//if err != nil {
-	//	return c.JSON(http.StatusNotFound, errors.New("your requested Item is not found"))
-	//}
-	//
-	//id := int64(idP)
-	//ctx := c.Request().Context()
-	//
-	//art, err := a.PLogic.GetByID(ctx, id)
-	//if err != nil {
-	//	return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
-	//}
-	//
-	//return c.JSON(http.StatusOK, art)
+	idP, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, errors.New("your requested Item is not found"))
+	}
+
+	id := int64(idP)
+	ctx := c.Request().Context()
+
+	art, err := a.PUseCase.GetByID(ctx, id)
+	if err != nil {
+		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, art)
 	return nil
 }
 
