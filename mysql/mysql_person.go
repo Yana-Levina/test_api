@@ -75,7 +75,7 @@ func (m *PersonRepository) GetAll(ctx context.Context) (res []app.Person, err er
 
 func (m *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Person, err error) {
 
-	query := `SELECT id, email, phone, first_name, last_name FROM public.person WHERE id = ?`
+	query := `SELECT id, email, phone, first_name, last_name FROM public.person WHERE id = $1`
 	list, err := m.fetch(ctx, query, id)
 	if err != nil {
 		return app.Person{}, err
@@ -92,7 +92,7 @@ func (m *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Perso
 
 func (_m *PersonRepository) Update(ctx context.Context, person *app.Person) (err error) {
 
-	//query := `UPDATE person SET email = ? , phone = ? , first_name = ?, last_name = ? WHERE id = ?`
+	//query := `UPDATE person SET email = $1 , phone = $1 , first_name = $1, last_name = ? WHERE id = $1`
 	return nil
 
 }
