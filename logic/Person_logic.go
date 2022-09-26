@@ -1,9 +1,10 @@
 package logic
 
 import (
+	"test/app"
+
 	"context"
 	"errors"
-	"test/app"
 	"time"
 )
 
@@ -51,12 +52,12 @@ func (p PersonUsecase) GetByID(c context.Context, id int64) (res app.Person, err
 	return
 }
 
-// iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
-func (p PersonUsecase) Update(c context.Context, person *app.Person) (err error) {
+func (p PersonUsecase) Update(c context.Context, person *app.Person, id int64) (err error) {
 	ctx, cancel := context.WithTimeout(c, p.contextTimeout)
 	defer cancel()
 
-	return p.personRepo.Update(ctx, person)
+	err = p.personRepo.Update(ctx, person, id)
+	return
 }
 
 func (p PersonUsecase) Delete(c context.Context, id int64) (err error) {
@@ -67,7 +68,7 @@ func (p PersonUsecase) Delete(c context.Context, id int64) (err error) {
 		return
 	}
 	if existedArticle == (app.Person{}) {
-		return errors.New("person is not found")
+		return errors.New("Your requested person is not found")
 	}
 	return p.personRepo.Delete(ctx, id)
 }

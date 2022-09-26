@@ -1,17 +1,15 @@
 package postgres
 
 import (
+	"test/app"
+
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	_ "fmt"
-	"github.com/sirupsen/logrus"
-	"test/app"
 
-	//_"github.com/gocraft/dbr"
-	//_ "github.com/lib/pq"
 	_ "github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 )
 
 type PersonRepository struct {
@@ -22,8 +20,8 @@ func NewPersonRepository(Conn *sql.DB) app.PersonRepository {
 	return &PersonRepository{Conn}
 }
 
-func (m *PersonRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []app.Person, err error) {
-	rows, err := m.Conn.QueryContext(ctx, query, args...)
+func (pg *PersonRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []app.Person, err error) {
+	rows, err := pg.Conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		logrus.Error(err)
 		return nil, err
@@ -58,10 +56,10 @@ func (m *PersonRepository) fetch(ctx context.Context, query string, args ...inte
 	return result, nil
 }
 
-func (m *PersonRepository) Create(ctx context.Context, person *app.Person) (err error) {
+func (pg *PersonRepository) Create(ctx context.Context, person *app.Person) (err error) {
 	query := `INSERT INTO public.person(email, phone, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id`
 
-	stmt, err := m.Conn.PrepareContext(ctx, query)
+	stmt, err := pg.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -76,10 +74,10 @@ func (m *PersonRepository) Create(ctx context.Context, person *app.Person) (err 
 	return
 }
 
-func (m *PersonRepository) GetAll(ctx context.Context) (res []app.Person, err error) {
+func (pg *PersonRepository) GetAll(ctx context.Context) (res []app.Person, err error) {
 	query := `SELECT id, email, phone, first_name, last_name FROM public.person`
 
-	res, err = m.fetch(ctx, query)
+	res, err = pg.fetch(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +85,9 @@ func (m *PersonRepository) GetAll(ctx context.Context) (res []app.Person, err er
 	return
 }
 
-func (m *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Person, err error) {
+func (pg *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Person, err error) {
 	query := `SELECT id, email, phone, first_name, last_name FROM public.person WHERE id = $1`
-	list, err := m.fetch(ctx, query, id)
+	list, err := pg.fetch(ctx, query, id)
 	if err != nil {
 		return app.Person{}, err
 	}
@@ -97,39 +95,38 @@ func (m *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Perso
 	if len(list) > 0 {
 		res = list[0]
 	} else {
-		return res, errors.New("your requested Item is not found")
+		return res, errors.New("Your requested person is not found")
 	}
 
 	return
 }
 
-func (m *PersonRepository) Update(ctx context.Context, person *app.Person) (err error) {
-
-	query := `UPDATE public.person SET email = $2 , phone = $3 , first_name = $4, last_name = $5 WHERE id = $1`
-	stmt, err := m.Conn.PrepareContext(ctx, query)
+func (pg *PersonRepository) Update(ctx context.Context, person *app.Person, id int64) (err error) {
+	query := `UPDATE public.person SET email = $1 , phone = $2 , first_name = $3, last_name = $4 WHERE id = $5`
+	stmt, err := pg.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
-
-	res, err := stmt.ExecContext(ctx, person.ID, person.Email, person.Phone, person.FirstName, person.LastName)
-
-	rowsAfected, err := res.RowsAffected()
+	res, err := stmt.ExecContext(ctx, person.Email, person.Phone, person.FirstName, person.LastName, id)
 	if err != nil {
 		return
 	}
-
-	if rowsAfected != 1 {
-		err = fmt.Errorf("Weird  Behavior. Total Affected: %d", rowsAfected)
+	affect, err := res.RowsAffected()
+	if err != nil {
+		return
+	}
+	if affect != 1 {
+		err = fmt.Errorf("Weird  Behavior. Total Affected: %d", affect)
 		return
 	}
 
 	return
 }
 
-func (m *PersonRepository) Delete(ctx context.Context, id int64) (err error) {
+func (pg *PersonRepository) Delete(ctx context.Context, id int64) (err error) {
 
 	query := `DELETE FROM person WHERE id = $1`
-	stmt, err := m.Conn.PrepareContext(ctx, query)
+	stmt, err := pg.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -143,7 +140,6 @@ func (m *PersonRepository) Delete(ctx context.Context, id int64) (err error) {
 	if err != nil {
 		return
 	}
-
 	if rowsAfected != 1 {
 		err = fmt.Errorf("Weird  Behavior. Total Affected: %d", rowsAfected)
 		return

@@ -29,18 +29,11 @@ func init() {
 }
 
 func main() {
-	//dbHost := viper.GetString(`database.host`)
-	//dbPort := viper.GetString(`database.port`)
+	dbDriver := viper.GetString(`database.driver`)
 	dbUser := viper.GetString(`database.user`)
 	dbPass := viper.GetString(`database.pass`)
 	dbName := viper.GetString(`database.name`)
-	//connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
-	//val := url.Values{}
-	//val.Add("parseTime", "1")
-	//val.Add("loc", "Asia/Jakarta")
-	//dsn := fmt.Sprintf("%s?%s", connection, val.Encode())
-	//dbConn, err := sql.Open(`postgres`, dsn)
-	dbConn, err := sql.Open("postgres", "user="+dbUser+" password="+dbPass+" dbname="+dbName+" sslmode=disable")
+	dbConn, err := sql.Open(dbDriver, "user="+dbUser+" password="+dbPass+" dbname="+dbName+" sslmode=disable")
 
 	if err != nil {
 		log.Fatal(err)
@@ -58,8 +51,6 @@ func main() {
 	}()
 
 	e := echo.New()
-	//middL := _personHttpDeliveryMiddleware.InitMiddleware()
-	//e.Use(middL.CORS)
 
 	pr := _personRepo.NewPersonRepository(dbConn)
 	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second

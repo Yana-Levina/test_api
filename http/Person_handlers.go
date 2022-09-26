@@ -2,13 +2,14 @@ package http
 
 import (
 	"errors"
+	"log"
+	"net/http"
+	"strconv"
+	"test/app"
+
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	validator "gopkg.in/go-playground/validator.v9"
-	"net/http"
-	"strconv"
-	_ "strconv"
-	"test/app"
 )
 
 type ResponseError struct {
@@ -30,7 +31,7 @@ func NewPersonHandler(e *echo.Echo, pu app.PersonUsecase) {
 	e.DELETE("/persons/:id", handler.Delete)
 }
 
-func (a *PersonHandler) Create(c echo.Context) (err error) {
+func (p *PersonHandler) Create(c echo.Context) (err error) {
 	var person app.Person
 
 	if err := c.Bind(&person); err != nil {
@@ -43,18 +44,18 @@ func (a *PersonHandler) Create(c echo.Context) (err error) {
 	}
 
 	ctx := c.Request().Context()
-	err = a.PUsecase.Create(ctx, &person)
+	err = p.PUsecase.Create(ctx, &person)
 	if err != nil {
 		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 	}
-	//log.Printf("req data %+v", person)
+	log.Printf("res %+v", person)
 	return c.JSON(http.StatusCreated, person)
 }
 
-func (a *PersonHandler) GetAll(c echo.Context) error {
+func (p *PersonHandler) GetAll(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	listAr, err := a.PUsecase.GetAll(ctx)
+	listAr, err := p.PUsecase.GetAll(ctx)
 	if err != nil {
 		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 	}
@@ -62,29 +63,28 @@ func (a *PersonHandler) GetAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, listAr)
 }
 
-func (a *PersonHandler) GetByID(c echo.Context) error {
+func (p *PersonHandler) GetByID(c echo.Context) error {
 	idP, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusNotFound, errors.New("your requested Item is not found"))
+		return c.JSON(http.StatusNotFound, errors.New("Your requested person is not found"))
 	}
 
 	id := int64(idP)
 	ctx := c.Request().Context()
 
-	art, err := a.PUsecase.GetByID(ctx, id)
+	art, err := p.PUsecase.GetByID(ctx, id)
 	if err != nil {
 		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 	}
 
 	return c.JSON(http.StatusOK, art)
-	//return nil
 }
 
-func (a *PersonHandler) Update(c echo.Context) (err error) {
+func (p *PersonHandler) Update(c echo.Context) (err error) {
 	var person app.Person
-	err = c.Bind(&person)
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, err.Error())
+
+	if err := c.Bind(&person); err != nil {
+		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 	}
 
 	var ok bool
@@ -92,8 +92,13 @@ func (a *PersonHandler) Update(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, errors.New("Your requested person is not found"))
+	}
+
 	ctx := c.Request().Context()
-	err = a.PUsecase.Update(ctx, &person)
+	err = p.PUsecase.Update(ctx, &person, int64(id))
 	if err != nil {
 		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 	}
@@ -101,16 +106,16 @@ func (a *PersonHandler) Update(c echo.Context) (err error) {
 	return c.JSON(http.StatusCreated, person)
 }
 
-func (a *PersonHandler) Delete(c echo.Context) error {
+func (p *PersonHandler) Delete(c echo.Context) error {
 	idP, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		//return c.JSON(http.StatusNotFound, app.ErrNotFound.Error())
+		return c.JSON(http.StatusNotFound, errors.New("Your requested person is not found"))
 	}
 
 	id := int64(idP)
 	ctx := c.Request().Context()
 
-	err = a.PUsecase.Delete(ctx, id)
+	err = p.PUsecase.Delete(ctx, id)
 	if err != nil {
 		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 	}
@@ -128,18 +133,16 @@ func isRequestValid(m *app.Person) (bool, error) {
 }
 
 func getStatusCode(err error) int {
-	//if err == nil {
-	return http.StatusOK
-	//}
+	if err == nil {
+		return http.StatusOK
+	}
 
 	logrus.Error(err)
 	switch err {
-	case errors.New("internal Server Error"):
+	case errors.New("Internal Server Error"):
 		return http.StatusInternalServerError
-	case errors.New("your requested Item is not found"):
+	case errors.New("Your requested person is not found"):
 		return http.StatusNotFound
-	case errors.New("your Item already exist"):
-		return http.StatusConflict
 	default:
 		return http.StatusInternalServerError
 	}
