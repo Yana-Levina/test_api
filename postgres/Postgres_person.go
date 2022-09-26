@@ -1,9 +1,10 @@
-package mysql
+package postgres
 
 import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	_ "fmt"
 	"github.com/sirupsen/logrus"
 	"test/app"
@@ -57,9 +58,22 @@ func (m *PersonRepository) fetch(ctx context.Context, query string, args ...inte
 	return result, nil
 }
 
-func (m *PersonRepository) Create(ctx context.Context, person *app.Person) error {
-	//TODO implement me
-	panic("implement me")
+func (m *PersonRepository) Create(ctx context.Context, person *app.Person) (err error) {
+	query := `INSERT INTO public.person(email, phone, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id`
+
+	stmt, err := m.Conn.PrepareContext(ctx, query)
+	if err != nil {
+		return
+	}
+
+	var id int
+	err = stmt.QueryRowContext(ctx, person.Email, person.Phone, person.FirstName, person.LastName).Scan(&id)
+
+	if err != nil {
+		return
+	}
+	person.ID = int64(id)
+	return
 }
 
 func (m *PersonRepository) GetAll(ctx context.Context) (res []app.Person, err error) {
@@ -74,7 +88,6 @@ func (m *PersonRepository) GetAll(ctx context.Context) (res []app.Person, err er
 }
 
 func (m *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Person, err error) {
-
 	query := `SELECT id, email, phone, first_name, last_name FROM public.person WHERE id = $1`
 	list, err := m.fetch(ctx, query, id)
 	if err != nil {
@@ -90,18 +103,51 @@ func (m *PersonRepository) GetByID(ctx context.Context, id int64) (res app.Perso
 	return
 }
 
-func (_m *PersonRepository) Update(ctx context.Context, person *app.Person) (err error) {
+func (m *PersonRepository) Update(ctx context.Context, person *app.Person) (err error) {
 
-	//query := `UPDATE person SET email = $1 , phone = $1 , first_name = $1, last_name = ? WHERE id = $1`
-	return nil
+	query := `UPDATE public.person SET email = $2 , phone = $3 , first_name = $4, last_name = $5 WHERE id = $1`
+	stmt, err := m.Conn.PrepareContext(ctx, query)
+	if err != nil {
+		return
+	}
 
+	res, err := stmt.ExecContext(ctx, person.ID, person.Email, person.Phone, person.FirstName, person.LastName)
+
+	rowsAfected, err := res.RowsAffected()
+	if err != nil {
+		return
+	}
+
+	if rowsAfected != 1 {
+		err = fmt.Errorf("Weird  Behavior. Total Affected: %d", rowsAfected)
+		return
+	}
+
+	return
 }
 
 func (m *PersonRepository) Delete(ctx context.Context, id int64) (err error) {
 
-	//query := `DELETE FROM person WHERE id = ?`
-	//id, _ := strconv.Atoi(c.Param("id"))
-	//delete(users, id)
-	//return c.NoContent(http.StatusNoContent)
-	return nil
+	query := `DELETE FROM person WHERE id = $1`
+	stmt, err := m.Conn.PrepareContext(ctx, query)
+	if err != nil {
+		return
+	}
+
+	res, err := stmt.ExecContext(ctx, id)
+	if err != nil {
+		return
+	}
+
+	rowsAfected, err := res.RowsAffected()
+	if err != nil {
+		return
+	}
+
+	if rowsAfected != 1 {
+		err = fmt.Errorf("Weird  Behavior. Total Affected: %d", rowsAfected)
+		return
+	}
+
+	return
 }

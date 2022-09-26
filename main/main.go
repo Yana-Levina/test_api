@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/labstack/echo/v4"
 	"log"
-	"net/http"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -13,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 	_personHttpDelivery "test/http"
 	_personLogic "test/logic"
-	_personRepo "test/mysql"
+	_personRepo "test/postgres"
 )
 
 func init() {
@@ -68,13 +67,5 @@ func main() {
 	pu := _personLogic.NewPersonUsecase(pr, timeoutContext)
 	_personHttpDelivery.NewPersonHandler(e, pu)
 
-	//убрать потом!!
-	e.GET("/", hello)
-
 	log.Fatal(e.Start(viper.GetString("server.address")))
-}
-
-// убрать потом!!
-func hello(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World! this is test")
 }
